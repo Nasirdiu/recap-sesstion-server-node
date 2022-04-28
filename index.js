@@ -12,7 +12,7 @@ app.use(express.json());
 //dbuser3
 //CCgoQtMV7upfKQdC
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.urjsr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -62,22 +62,24 @@ async function run() {
     //order list
     app.get("/orderList", async (req, res) => {
       const tokenInfo = req.headers.authorization;
-
-      console.log(tokenInfo)
-      const [email, accessToken] = tokenInfo.split(" ")
+      // console.log(tokenInfo)
+      const [email, accessToken] = tokenInfo.split(" ");
       // console.log(email, accessToken)
-
-      const decoded = verifyToken(accessToken)
-
+      const decoded = verifyToken(accessToken);
       if (email === decoded.email) {
-          const orders = await orderCollection.find({email:email}).toArray();
-          res.send(orders);
+        const orders = await orderCollection.find({ email: email }).toArray();
+        res.send(orders);
+      } else {
+        res.send({ success: "UnAuthoraized Access" });
       }
-      else {
-          res.send({ success: 'UnAuthoraized Access' })
-      }
-
-  })
+    });
+    
+    //delete
+    app.delete("/product", async (req, res) => {
+      const id = req.body;
+      const result = await useCollection.deleteOne(id);
+      res.send({success:'Delete success'});
+    });
   } finally {
     //   await client.close();
   }
@@ -99,7 +101,7 @@ function verifyToken(token) {
       email = "invalid";
     }
     if (decoded) {
-      console.log(decoded);
+      // console.log(decoded);
       email = decoded;
     }
   });
